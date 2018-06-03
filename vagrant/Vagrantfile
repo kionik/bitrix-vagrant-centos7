@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Проверяем наличие плагина "vagrant-reload"
+unless Vagrant.has_plugin?("vagrant-reload")
+  raise 'vagrant-reload is not installed! Please install it and try again.'
+end
+
+Vagrant.configure(2) do |config|
+
+  # Скачиваем box для Vagrant
+  config.vm.box = "centos/7"
+
+  # Устанавливаем связь портов физической и вирутальной машины. 
+  # Сайт будет доступен по адресу localhost:8888/ 
+  # Для соединения с базой используйте порт 8889
+  config.vm.network :forwarded_port, guest: 80, host: 8888, auto_correct: true
+  config.vm.network :forwarded_port, guest: 3306, host: 8889, auto_correct: true
+  config.vm.network :forwarded_port, guest: 5432, host: 5433, auto_correct: true
+  
+  # Синхронизируем папки на виртуальной и физической машине
+  config.vm.synced_folder "../", "/home/bitrix/"
+
+  # Устанавливаем виртуальную машину битрикс
+  config.vm.provision :shell, path: "install.bash"
+  config.vm.provision :reload
+  config.vm.provision :shell, path: "install_after_reload.bash"
+  
+end
